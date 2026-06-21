@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="dash-wrap">
+  <div class="dash-header anim-fade">
+    <div>
+      <h1>Hi {{ current_user.name.split(' ')[0] }}</h1>
+      <p>Last 7 days, compared against a {{ target_daily }} kg/day sustainable target.</p>
+    </div>
+    <a href="{{ url_for('activities.log_activity') }}" class="btn-primary">+ Log activity</a>
+  </div>
+
+  <div class="stat-grid">
+    <div class="stat-cell anim-fade" style="--delay: 0.05s">
+      <span class="stat-label">7-day total</span>
+      <span class="stat-value" data-value="{{ week_total }}" data-suffix=" kg">0<small style="font-size:14px;"> kg</small></span>
+    </div>
+    <div class="stat-cell anim-fade" style="--delay: 0.1s">
+      <span class="stat-label">Daily average</span>
+      <span class="stat-value {{ 'good' if week_avg_daily <= target_daily else 'bad' }}" data-value="{{ week_avg_daily }}" data-suffix=" kg">0<small style="font-size:14px;"> kg</small></span>
+      <div class="stat-sub">target {{ target_daily }} kg/day</div>
+    </div>
+    <div class="stat-cell anim-fade" style="--delay: 0.15s">
+      <span class="stat-label">Vs. global average</span>
+      {% if vs_global_pct is not none %}
+        <span class="stat-value {{ 'good' if vs_global_pct < 0 else 'bad' }}" data-value="{{ vs_global_pct }}" data-suffix="%">0%</span>
+        <div class="stat-sub">global avg {{ global_avg_daily }} kg/day</div>
+      {% else %}
+        <span class="stat-value">—</span>
+      {% endif %}
+    </div>
+    <div class="stat-cell anim-fade" style="--delay: 0.2s">
+      <span class="stat-label">Biggest source</span>
+      {% if breakdown %}
+        {% set top_cat = breakdown|dictsort(by='value')|last %}
+        <span class="stat-value" style="font-size:20px; text-transform: capitalize;">{{ top_cat[0] }}</span>
+        <div class="stat-sub">{{ top_cat[1] }} kg in 30 days</div>
+      {% else %}
+        <span class="stat-value" style="font-size:20px;">—</span>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Progress Ring -->
+  <div class="progress-ring-wrap anim-fade" style="--delay: 0.25s">
+    <svg class="progress-ring" viewBox="0 0 120 120">
+      <circle class="progress-ring__bg" cx="60" cy="60" r="52"/>
+      <circle class="progress-ring__fill {{ 'over-target' if week_avg_daily > target_daily }}" cx="60" cy="60" r="52"
+              style="--progress: {{ [((week_avg_daily / target_daily) * 100)|round|int, 100] | min if target_daily > 0 else 0 }};"/>
+    </svg>
+    <div class="progress-ring-label">
+      <span class="progress-ring-value" data-value="{{ week_avg_daily }}">0</span>
+      <span class="progress-ring-unit">of {{ target_daily }} kg/day target</span>
+      {% if week_avg_daily <= target_daily %}
+        <span class="progress-ring-hint" style="color: var(--moss);">✓ Below sustainable target</span>
+      {% else %}
+        <span class="progress-ring-hint" style="color: var(--ember);">↑ Above sustainable target</span>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="ledger anim-fade" style="--delay: 0.3s">
+    <div class="ledger-title">
+      <h2>Daily ledger — last 14 days</h2>
+      <div class="ledger-legend">
+        <span><span class="legend-dot" style="background: var(--moss);"></span>at/under target</span>
+        <span><span class="legend-dot" style="background: var(--ember);"></span>over target</span>
+      </div>
+    </div>
+    <div class="ledger-strip">
+      {% set max_val = (daily_series|map(attribute='kg')|max) or 1 %}
+      {% for day in daily_series %}
+        {% set pct = (day.kg / (max_val if max_val > 0 else 1)) * 100 %}
+        <div class="ledger-col">
+          <div class="ledger-bar" style="height: {{ pct if day.kg > 0 else 2 }}%; background: {{ 'var(--ember)' if day.kg > target_daily else 'var(--moss)' }}; --i: {{ loop.index0 }};" title="{{ day.date }}: {{ day.kg }} kg"></div>
+        </div>
+      {% endfor %}
+    </div>
+    <div class="ledger-strip" style="height: auto; border-bottom: none; margin-top: 4px;">
+      {% for day in daily_series %}
+        <div class="ledger-col"><span class="ledger-date">{{ day.date[-2:] }}</span></div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="panels">
+    <div class="panel anim-fade" style="--delay: 0.35s">
+      <h2>Breakdown by category — 30 days</h2>
+      {% if breakdown %}
+        {% set colors = {'transport': 'var(--ember)', 'energy': 'var(--signal)', 'food': 'var(--moss)', 'waste': 'var(--slate)'} %}
+        {% set max_breakdown = breakdown.values()|max %}
+        {% for category, value in breakdown.items() %}
+          <div class="breakdown-row">
+            <span class="breakdown-label">{{ category }}</span>
+            <div class="breakdown-bar-track">
+              <div class="breakdown-bar-fill" style="width: {{ (value / max_breakdown * 100) if max_breakdown > 0 else 0 }}%; background: {{ colors.get(category, 'var(--moss)') }}; --delay: {{ loop.index0 * 0.1 }}s;"></div>
+            </div>
+            <span class="breakdown-value">{{ value }} kg</span>
+          </div>
+        {% endfor %}
+      {% else %}
+        <div class="empty-state">No data yet this month.</div>
+      {% endif %}
+    </div>
+
+    <div class="panel anim-fade" style="--delay: 0.4s">
+      <h2>What to change next</h2>
+      {% if insights %}
+        {% for insight in insights %}
+          <div class="insight-card {{ 'informational' if insight.est_weekly_saving_kg == 0 }} anim-slide" style="--delay: {{ 0.45 + loop.index0 * 0.1 }}s">
+            <div class="insight-title">{{ insight.title }}</div>
+            <p class="insight-detail">{{ insight.detail }}</p>
+            {% if insight.est_weekly_saving_kg > 0 %}
+              <span class="insight-saving">≈ {{ insight.est_weekly_saving_kg }} kg CO2e/week if adopted</span>
+            {% endif %}
+          </div>
+        {% endfor %}
+      {% else %}
+        <div class="empty-state">Log a few activities and personalized suggestions will appear here.</div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

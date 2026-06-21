@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block title %}Track what you can't see{% endblock %}
+
+{% block content %}
+<section class="hero">
+  <!-- Floating particles -->
+  <div class="hero-particles">
+    <span></span><span></span><span></span>
+    <span></span><span></span><span></span>
+  </div>
+
+  <div>
+    <span class="hero-eyebrow anim-fade" style="--delay: 0s">Daily footprint, made visible</span>
+    <h1 class="anim-fade" style="--delay: 0.1s">You can't manage<br>what you can't <em>measure.</em></h1>
+    <p class="hero-sub anim-fade" style="--delay: 0.2s">
+      Carbon Ledger turns your transport, energy, food, and waste habits into one
+      clear daily number — then tells you exactly which change moves it the most.
+    </p>
+    <div class="hero-actions anim-fade" style="--delay: 0.3s">
+      <a href="{{ url_for('auth.signup') }}" class="btn-primary">Start tracking — free</a>
+      <a href="{{ url_for('auth.login') }}" class="btn-ghost">Log in</a>
+    </div>
+  </div>
+
+  <div class="hero-gauge-wrap anim-fade" style="--delay: 0.4s">
+    <div class="hero-glow"></div>
+    <div class="gauge-card">
+      <span class="gauge-label">Today's reading — demo</span>
+      <div class="gauge-readout">
+        <div><span class="gauge-number" id="demoNumber">0.0</span><span class="gauge-unit">kg CO2e</span></div>
+        <span class="gauge-target">target 5.5 kg/day</span>
+      </div>
+      <div class="gauge-track"><div class="gauge-fill" id="demoFill"></div></div>
+      <div class="gauge-rows">
+        <div class="gauge-row"><span>Transport</span><span>3.8 kg</span></div>
+        <div class="gauge-row"><span>Food</span><span>2.1 kg</span></div>
+        <div class="gauge-row"><span>Energy</span><span>1.4 kg</span></div>
+        <div class="gauge-row"><span>Waste</span><span>0.3 kg</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <span class="section-eyebrow anim-fade">How it works</span>
+  <h2 class="anim-fade" style="--delay: 0.1s">Three steps between "I have no idea" and "here's exactly what to change."</h2>
+  <div class="feature-grid">
+    <div class="feature-cell anim-fade" style="--delay: 0.15s">
+      <span class="feature-tag">01 · Log</span>
+      <h3>Record real activity</h3>
+      <p>Car trips, meals, electricity use, waste — logged in seconds using emission factors sourced from DEFRA, EPA, and Our World in Data.</p>
+    </div>
+    <div class="feature-cell anim-fade" style="--delay: 0.25s">
+      <span class="feature-tag">02 · See</span>
+      <h3>Watch your ledger fill</h3>
+      <p>A daily strip shows exactly where today's footprint came from, category by category, against a sustainable daily target.</p>
+    </div>
+    <div class="feature-cell anim-fade" style="--delay: 0.35s">
+      <span class="feature-tag">03 · Act</span>
+      <h3>Get ranked suggestions</h3>
+      <p>Rule-based insights surface the single highest-impact swap available to you this week — with an estimated kg CO2e saved.</p>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <span class="section-eyebrow anim-fade">Why it matters</span>
+  <h2 class="anim-fade" style="--delay: 0.1s">The average person emits about 12.9 kg CO2e a day. A 2050-aligned path needs roughly 5.5 kg.</h2>
+  <p class="anim-fade" style="max-width: 560px; --delay: 0.2s">
+    Closing that gap isn't about guilt — it's about visibility. Most people have never seen
+    their own number, let alone which single habit is driving it. Carbon Ledger exists to close that gap.
+  </p>
+</section>
+{% endblock %}

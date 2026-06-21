@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block title %}History{% endblock %}
+
+{% block content %}
+<div class="history-wrap">
+  <div class="history-header anim-fade">
+    <h1>Activity history</h1>
+    <div class="history-header-actions">
+      <a href="{{ url_for('activities.export_csv') }}" class="btn-ghost btn-sm">↓ Export CSV</a>
+      <a href="{{ url_for('activities.log_activity') }}" class="btn-primary btn-sm">+ Log activity</a>
+    </div>
+  </div>
+
+  {% if activities %}
+  <table class="history-table anim-fade" style="--delay: 0.1s">
+    <thead>
+      <tr>
+        <th>Date</th>
+        <th>Activity</th>
+        <th>Quantity</th>
+        <th>CO2e</th>
+        <th>Note</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for a in activities %}
+      <tr>
+        <td>{{ a.logged_date.strftime('%d %b %Y') }}</td>
+        <td>{{ a.factor.label }}</td>
+        <td>{{ a.quantity }} {{ a.factor.unit }}</td>
+        <td class="co2-cell">{{ "%.2f"|format(a.co2e_kg) }} kg</td>
+        <td>{{ a.note or "—" }}</td>
+        <td>
+          <div class="actions-cell">
+            <a href="{{ url_for('activities.edit_activity', activity_id=a.id) }}" class="btn-edit">Edit</a>
+            <form method="POST" action="{{ url_for('activities.delete_activity', activity_id=a.id) }}" class="delete-form">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+              <button type="submit" class="btn-delete">Remove</button>
+            </form>
+          </div>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  {% if pagination.pages > 1 %}
+  <nav class="pagination anim-fade" style="--delay: 0.15s">
+    {% if pagination.has_prev %}
+      <a href="{{ url_for('activities.history', page=pagination.prev_num) }}" class="page-link">← Prev</a>
+    {% endif %}
+    {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+      {% if p %}
+        <a href="{{ url_for('activities.history', page=p) }}" class="page-link {{ 'active' if p == pagination.page }}">{{ p }}</a>
+      {% else %}
+        <span class="page-ellipsis">…</span>
+      {% endif %}
+    {% endfor %}
+    {% if pagination.has_next %}
+      <a href="{{ url_for('activities.history', page=pagination.next_num) }}" class="page-link">Next →</a>
+    {% endif %}
+  </nav>
+  {% endif %}
+
+  {% else %}
+  <div class="empty-state anim-fade">
+    No activity logged yet. <a href="{{ url_for('activities.log_activity') }}" style="color: var(--moss); border-bottom: 1px solid var(--moss-dim);">Log your first one.</a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

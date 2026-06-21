@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}Settings{% endblock %}
+
+{% block content %}
+<div class="settings-wrap">
+  <h1 class="anim-fade">Settings</h1>
+  <p class="auth-sub anim-fade" style="--delay: 0.05s">Manage your profile and preferences.</p>
+
+  <!-- Profile Settings -->
+  <div class="settings-card anim-fade" style="--delay: 0.1s">
+    <h2>Profile</h2>
+    <form method="POST" action="{{ url_for('settings.index') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+      <input type="hidden" name="action" value="profile">
+
+      <div class="field">
+        <label for="name">Name</label>
+        <input type="text" id="name" name="name" value="{{ current_user.name }}" required>
+      </div>
+
+      <div class="field">
+        <label>Email</label>
+        <div class="field-static">{{ current_user.email }}</div>
+      </div>
+
+      <div class="field">
+        <label for="household_size">Household size</label>
+        <input type="number" id="household_size" name="household_size" min="1" max="20" value="{{ current_user.household_size or 1 }}">
+        <div class="field-hint">Used to contextualize per-capita insights.</div>
+      </div>
+
+      <div class="field">
+        <label for="daily_goal_kg">Daily target (kg CO2e)</label>
+        <input type="number" id="daily_goal_kg" name="daily_goal_kg" step="0.1" min="0.1" value="{{ current_user.daily_goal_kg or 5.5 }}">
+        <div class="field-hint">Default is 5.5 kg/day (2-tonne/year pathway). Adjust to your own goal.</div>
+      </div>
+
+      <button type="submit" class="btn-block">Save profile</button>
+    </form>
+  </div>
+
+  <!-- Change Password -->
+  <div class="settings-card anim-fade" style="--delay: 0.2s">
+    <h2>Change password</h2>
+    <form method="POST" action="{{ url_for('settings.index') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+      <input type="hidden" name="action" value="password">
+
+      <div class="field">
+        <label for="current_password">Current password</label>
+        <input type="password" id="current_password" name="current_password" required>
+      </div>
+
+      <div class="field">
+        <label for="new_password">New password</label>
+        <input type="password" id="new_password" name="new_password" placeholder="At least 6 characters" required minlength="6">
+      </div>
+
+      <div class="field">
+        <label for="confirm_password">Confirm new password</label>
+        <input type="password" id="confirm_password" name="confirm_password" required minlength="6">
+      </div>
+
+      <button type="submit" class="btn-block">Change password</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

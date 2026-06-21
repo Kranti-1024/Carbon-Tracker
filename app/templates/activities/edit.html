@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}Edit activity{% endblock %}
+
+{% block content %}
+<div class="log-wrap">
+  <h1 class="anim-fade">Edit activity</h1>
+  <p class="auth-sub anim-fade" style="--delay: 0.05s">Update the details for this entry.</p>
+
+  <div class="category-tabs anim-fade" style="--delay: 0.1s" id="categoryTabs">
+    {% for category in grouped.keys() %}
+      <button type="button" class="cat-tab {{ 'active' if category == activity.factor.category }}" data-category="{{ category }}">{{ category }}</button>
+    {% endfor %}
+  </div>
+
+  <form method="POST" action="{{ url_for('activities.edit_activity', activity_id=activity.id) }}" class="anim-fade" style="--delay: 0.15s">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+    {% for category, factors in grouped.items() %}
+      <div class="factor-group {{ 'active' if category == activity.factor.category }}" data-category-group="{{ category }}">
+        <div class="field">
+          <label>Activity type</label>
+          <select name="factor_key" {{ 'required' if category == activity.factor.category }} {{ 'disabled' if category != activity.factor.category }}>
+            {% for f in factors %}
+              <option value="{{ f.key }}" {{ 'selected' if f.key == activity.factor_key }}>{{ f.label }} ({{ f.unit }})</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+    {% endfor %}
+
+    <div class="field">
+      <label for="quantity">Quantity</label>
+      <input type="number" step="0.01" min="0" id="quantity" name="quantity" value="{{ activity.quantity }}" required>
+    </div>
+
+    <div class="field">
+      <label for="logged_date">Date</label>
+      <input type="date" id="logged_date" name="logged_date" value="{{ activity.logged_date.isoformat() }}" required>
+    </div>
+
+    <div class="field">
+      <label for="note">Note (optional)</label>
+      <input type="text" id="note" name="note" value="{{ activity.note or '' }}" placeholder="e.g. Commute to office">
+    </div>
+
+    <div class="form-actions">
+      <button type="submit" class="btn-primary" style="flex:1;">Save changes</button>
+      <a href="{{ url_for('activities.history') }}" class="btn-cancel">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}
