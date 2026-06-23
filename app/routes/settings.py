@@ -43,8 +43,8 @@ def index():
 
             if not current_user.check_password(current_pw):
                 flash('Current password is incorrect.', 'error')
-            elif len(new_pw) < 6:
-                flash('New password must be at least 6 characters.', 'error')
+            elif len(new_pw) < 8:
+                flash('New password must be at least 8 characters.', 'error')
             elif new_pw != confirm_pw:
                 flash('New passwords do not match.', 'error')
             else:

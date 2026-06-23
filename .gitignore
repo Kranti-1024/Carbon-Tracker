@@ -2,11 +2,11 @@ __pycache__/
 *.pyc
 *.pyo
 .env
+.env.local
 .venv/
 venv/
 env/
-instance/*.db
-instance/*.sqlite3
+instance/
 *.egg-info/
 .DS_Store
 migrations/

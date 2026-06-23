@@ -1,2 +1,2 @@
 web: gunicorn run:app
-release: python seed.py
+release: flask db upgrade && flask seed-factors

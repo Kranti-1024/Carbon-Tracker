@@ -3,7 +3,7 @@ import io
 from datetime import date, datetime
 from flask import Blueprint, render_template, redirect, url_for, request, flash, Response
 from flask_login import login_required, current_user
-from app import db
+from app import db, limiter
 from app.models.activity import Activity, EmissionFactor
 
 activities_bp = Blueprint("activities", __name__, url_prefix="/activities")
@@ -21,7 +21,7 @@ def log_activity():
         factor_key = request.form.get("factor_key")
         quantity_raw = request.form.get("quantity", "").strip()
         logged_date_raw = request.form.get("logged_date", "").strip()
-        note = request.form.get("note", "").strip()
+        note = request.form.get("note", "").strip()[:255]  # cap at DB column length
 
         factor = EmissionFactor.query.filter_by(key=factor_key).first()
         if factor is None:
@@ -85,7 +85,7 @@ def edit_activity(activity_id):
         factor_key = request.form.get('factor_key')
         quantity_raw = request.form.get('quantity', '').strip()
         logged_date_raw = request.form.get('logged_date', '').strip()
-        note = request.form.get('note', '').strip()
+        note = request.form.get('note', '').strip()[:255]  # cap at DB column length
 
         factor = EmissionFactor.query.filter_by(key=factor_key).first()
         if factor is None:
@@ -119,6 +119,7 @@ def edit_activity(activity_id):
 
 @activities_bp.route('/export/csv')
 @login_required
+@limiter.limit('10/minute')
 def export_csv():
     activities = (
         Activity.query.filter_by(user_id=current_user.id)

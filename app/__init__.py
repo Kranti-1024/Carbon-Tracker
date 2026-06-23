@@ -5,6 +5,7 @@ from flask_limiter.util import get_remote_address
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from flask_migrate import Migrate
+from flask_talisman import Talisman
 from config import Config
 
 db = SQLAlchemy()
@@ -12,6 +13,31 @@ login_manager = LoginManager()
 migrate = Migrate()
 csrf = CSRFProtect()
 limiter = Limiter(key_func=get_remote_address)
+talisman = Talisman()
+
+# Content-Security-Policy:
+# - default-src 'self'          → only load resources from own origin by default
+# - style-src allows Google Fonts stylesheet + inline styles (needed by Jinja flash)
+# - font-src allows Google Fonts binary files
+# - script-src 'self' only      → no inline scripts or external CDN JS
+# - img-src 'self' data:        → allow data-URIs for embedded chart images
+CSP = {
+    'default-src': "'self'",
+    'style-src': [
+        "'self'",
+        'https://fonts.googleapis.com',
+        # Allow Talisman nonce-based inline styles if needed in future
+    ],
+    'font-src': [
+        "'self'",
+        'https://fonts.gstatic.com',
+    ],
+    'script-src': "'self'",
+    'img-src': ["'self'", 'data:'],
+    'object-src': "'none'",
+    'base-uri': "'self'",
+    'frame-ancestors': "'none'",
+}
 
 
 def create_app(config_class=Config):
@@ -23,6 +49,24 @@ def create_app(config_class=Config):
     login_manager.init_app(app)
     csrf.init_app(app)
     limiter.init_app(app)
+
+    # Security headers — force HTTPS only outside debug/test mode
+    talisman.init_app(
+        app,
+        content_security_policy=CSP,
+        content_security_policy_nonce_in=['script-src'],
+        force_https=not app.debug,
+        strict_transport_security=True,
+        strict_transport_security_max_age=31536000,  # 1 year
+        strict_transport_security_include_subdomains=True,
+        referrer_policy='strict-origin-when-cross-origin',
+        feature_policy={
+            'geolocation': "'none'",
+            'microphone': "'none'",
+            'camera': "'none'",
+        },
+    )
+
     login_manager.login_view = "auth.login"
     login_manager.login_message_category = "info"
 

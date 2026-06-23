@@ -1,4 +1,10 @@
 import os
+from dotenv import load_dotenv
+
+# Load .env for local development. In production (Railway/Render) env vars are
+# injected directly by the platform so this is a no-op if .env doesn't exist.
+load_dotenv()
+
 from app import create_app, db
 from app.models.user import User
 from app.models.activity import Activity, EmissionFactor
@@ -22,4 +28,4 @@ def make_shell_context():
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port, debug=os.environ.get("FLASK_DEBUG", "1") == "1")
+    app.run(host="0.0.0.0", port=port, debug=os.environ.get("FLASK_DEBUG", "0") == "1")

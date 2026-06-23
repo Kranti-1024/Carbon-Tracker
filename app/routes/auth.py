@@ -29,8 +29,8 @@ def signup():
             flash("Please fill in every field.", "error")
             return render_template("auth/signup.html")
 
-        if len(password) < 6:
-            flash("Password must be at least 6 characters.", "error")
+        if len(password) < 8:
+            flash("Password must be at least 8 characters.", "error")
             return render_template("auth/signup.html")
 
         if User.query.filter_by(email=email).first():
